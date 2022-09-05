@@ -17,10 +17,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -144,14 +141,14 @@ public class FurnitureMechanic extends Mechanic {
         clickActions = ClickAction.parseList(section);
     }
 
-    public static ArmorStand getSeat(Location location) {
+    public static Entity getSeat(Location location) {
         Location seatLoc = location.clone().add(0.5, 0.0, 0.5);
         for (Entity entity : location.getWorld().getNearbyEntities(seatLoc, 0.1, 10, 0.1)) {
-            if (entity instanceof ArmorStand seat
+            if (entity instanceof AreaEffectCloud || entity instanceof ArmorStand
                     && entity.getLocation().getX() == seatLoc.getX()
                     && entity.getLocation().getZ() == seatLoc.getZ()
                     && entity.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
-                return seat;
+                return entity;
             }
         }
         return null;
@@ -323,7 +320,7 @@ public class FurnitureMechanic extends Mechanic {
             if (light != -1)
                 WrappedLightAPI.removeBlockLight(location);
             if (hasSeat()) {
-                ArmorStand seat = getSeat(location);
+                Entity seat = getSeat(location);
                 if (seat != null && seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
                     seat.getPassengers().forEach(seat::removePassenger);
                     seat.remove();
@@ -419,19 +416,18 @@ public class FurnitureMechanic extends Mechanic {
 
     private String spawnSeat(FurnitureMechanic mechanic, Block target, float yaw) {
         if (mechanic.hasSeat()) {
-            final ArmorStand seat = target.getWorld().spawn(target.getLocation()
-                    .add(0.5, mechanic.getSeatHeight() - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
-                stand.setVisible(false);
-                stand.setRotation(yaw, 0);
-                stand.setInvulnerable(true);
-                stand.setPersistent(true);
-                stand.setAI(false);
-                stand.setCollidable(false);
-                stand.setGravity(false);
-                stand.setSilent(true);
-                stand.setCustomNameVisible(false);
-                stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
-                stand.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, stand.getUniqueId().toString());
+            final AreaEffectCloud seat = target.getWorld().spawn(target.getLocation()
+                    .add(0.5, mechanic.getSeatHeight() - 1, 0.5), AreaEffectCloud.class, (AreaEffectCloud cloud) -> {
+                cloud.setRotation(yaw, 0);
+                cloud.setInvulnerable(true);
+                cloud.setPersistent(true);
+                cloud.setGravity(false);
+                cloud.setSilent(true);
+                cloud.setCustomNameVisible(false);
+                cloud.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
+                cloud.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, cloud.getUniqueId().toString());
+                cloud.setDuration(Integer.MAX_VALUE);
+                cloud.setRadius(0);
             });
             return seat.getUniqueId().toString();
         }

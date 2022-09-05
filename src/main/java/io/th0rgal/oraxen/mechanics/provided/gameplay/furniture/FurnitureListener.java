@@ -429,7 +429,7 @@ public class FurnitureListener implements Listener {
                 mechanic.runClickActions(event.getPlayer());
         }
 
-        final ArmorStand seat = getSeat(block.getLocation());
+        final Entity seat = getSeat(block.getLocation());
         if (seat == null || !seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) return;
 
         final String entityId = seat.getPersistentDataContainer().get(SEAT_KEY, PersistentDataType.STRING);
